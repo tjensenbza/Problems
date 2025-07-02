@@ -2,15 +2,12 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <title>Meine Top 10 (Supabase)</title>
+  <title>Top 10 Liste – Supabase</title>
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
       padding: 20px;
-    }
-    h1 {
-      margin-bottom: 20px;
     }
     ul {
       list-style: none;
@@ -24,13 +21,15 @@
       background-color: #f8f8f8;
       cursor: move;
     }
-    .item-title {
+    input.title {
+      width: 100%;
       font-weight: bold;
+      font-size: 1em;
+      margin-bottom: 5px;
     }
     textarea {
       width: 100%;
       height: 60px;
-      margin-top: 5px;
       resize: vertical;
     }
     button {
@@ -56,20 +55,19 @@
         },
       });
       const data = await res.json();
-      data.sort((a, b) => a.position - b.position);
-      return data;
+      return data.sort((a, b) => a.position - b.position);
     }
 
     async function saveList() {
       const items = [];
       document.querySelectorAll("#top10-list li").forEach((li, index) => {
-        const title = li.querySelector(".item-title").textContent;
-        const comment = li.querySelector("textarea").value;
         const id = parseInt(li.dataset.id, 10);
+        const title = li.querySelector("input.title").value.trim();
+        const comment = li.querySelector("textarea").value.trim();
         items.push({ id, position: index + 1, title, comment });
       });
 
-      const updates = await Promise.all(items.map(item =>
+      await Promise.all(items.map(item =>
         fetch(`${SUPABASE_URL}/rest/v1/top10_items?id=eq.${item.id}`, {
           method: "PATCH",
           headers: {
@@ -80,6 +78,7 @@
           },
           body: JSON.stringify({
             position: item.position,
+            title: item.title,
             comment: item.comment
           })
         })
@@ -96,7 +95,7 @@
         const li = document.createElement("li");
         li.dataset.id = item.id;
         li.innerHTML = `
-          <div class="item-title">${item.title}</div>
+          <input class="title" type="text" value="${item.title || ""}" />
           <textarea placeholder="Kommentar...">${item.comment || ""}</textarea>
         `;
         container.appendChild(li);
