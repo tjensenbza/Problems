@@ -109,6 +109,7 @@
     async function saveList() {
       console.log("🔵 Speichervorgang gestartet...");
       const items = [];
+      const now = new Date().toISOString();
       const listItems = document.querySelectorAll("#top10-list li");
 
       for (let i = 0; i < listItems.length; i++) {
@@ -130,7 +131,8 @@
             position: i + 1,
             title,
             comment,
-            status
+            status,
+            last_updated: now
           })
         });
 
