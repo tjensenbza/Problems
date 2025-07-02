@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Meine Top 10 (Supabase)</title>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+      max-width: 600px;
+    }
+    li {
+      margin-bottom: 15px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      background-color: #f8f8f8;
+      cursor: move;
+    }
+    .item-title {
+      font-weight: bold;
+    }
+    textarea {
+      width: 100%;
+      height: 60px;
+      margin-top: 5px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 15px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Meine Top 10</h1>
+  <ul id="top10-list"></ul>
+  <button onclick="saveList()">Speichern</button>
+
+  <script type="module">
+    const SUPABASE_URL = "https://fdsedmqvonfsegyfvqwq.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZkc2VkbXF2b25mc2VneWZ2cXdxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE0NDA3MTUsImV4cCI6MjA2NzAxNjcxNX0.85AKLlUGAtOsLm8Om6rx19ZpPBYF8kf3xrL6NiTPCME";
+
+    async function fetchList() {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/top10_items?select=*`, {
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`,
+        },
+      });
+      const data = await res.json();
+      data.sort((a, b) => a.position - b.position);
+      return data;
+    }
+
+    async function saveList() {
+      const items = [];
+      document.querySelectorAll("#top10-list li").forEach((li, index) => {
+        const title = li.querySelector(".item-title").textContent;
+        const comment = li.querySelector("textarea").value;
+        const id = parseInt(li.dataset.id, 10);
+        items.push({ id, position: index + 1, title, comment });
+      });
+
+      const updates = await Promise.all(items.map(item =>
+        fetch(`${SUPABASE_URL}/rest/v1/top10_items?id=eq.${item.id}`, {
+          method: "PATCH",
+          headers: {
+            apikey: SUPABASE_KEY,
+            Authorization: `Bearer ${SUPABASE_KEY}`,
+            "Content-Type": "application/json",
+            Prefer: "return=representation"
+          },
+          body: JSON.stringify({
+            position: item.position,
+            comment: item.comment
+          })
+        })
+      ));
+
+      alert("Liste gespeichert!");
+    }
+
+    async function renderList() {
+      const list = await fetchList();
+      const container = document.getElementById("top10-list");
+      container.innerHTML = "";
+      list.forEach(item => {
+        const li = document.createElement("li");
+        li.dataset.id = item.id;
+        li.innerHTML = `
+          <div class="item-title">${item.title}</div>
+          <textarea placeholder="Kommentar...">${item.comment || ""}</textarea>
+        `;
+        container.appendChild(li);
+      });
+
+      new Sortable(container, { animation: 150 });
+    }
+
+    renderList();
+  </script>
+</body>
+</html>
