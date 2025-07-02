@@ -89,7 +89,7 @@
   <h1>Meine Top 10 Liste</h1>
   <div id="last-saved">Letzte Änderung: nie</div>
   <ul id="top10-list"></ul>
-  <button onclick="saveList()">Speichern</button>
+  <button id="save-btn">Speichern</button>
 
   <script type="module">
     const SUPABASE_URL = "https://fdsedmqvonfsegyfvqwq.supabase.co";
@@ -107,17 +107,18 @@
     }
 
     async function saveList() {
+      console.log("🔵 Speichervorgang gestartet...");
       const items = [];
-      document.querySelectorAll("#top10-list li").forEach((li, index) => {
+      const listItems = document.querySelectorAll("#top10-list li");
+
+      for (let i = 0; i < listItems.length; i++) {
+        const li = listItems[i];
         const id = parseInt(li.dataset.id, 10);
         const title = li.querySelector("input.title").value.trim();
         const comment = li.querySelector("textarea").value.trim();
         const status = li.querySelector("input.status").value.trim();
-        items.push({ id, position: index + 1, title, comment, status });
-      });
 
-      await Promise.all(items.map(item =>
-        fetch(`${SUPABASE_URL}/rest/v1/top10_items?id=eq.${item.id}`, {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/top10_items?id=eq.${id}`, {
           method: "PATCH",
           headers: {
             apikey: SUPABASE_KEY,
@@ -126,13 +127,17 @@
             Prefer: "return=representation"
           },
           body: JSON.stringify({
-            position: item.position,
-            title: item.title,
-            comment: item.comment,
-            status: item.status
+            position: i + 1,
+            title,
+            comment,
+            status
           })
-        })
-      ));
+        });
+
+        if (!res.ok) {
+          console.error("❌ Fehler beim Speichern von Eintrag:", id);
+        }
+      }
 
       updateLastSavedTime();
       alert("Liste gespeichert!");
@@ -163,6 +168,8 @@
     }
 
     renderList();
+    setInterval(renderList, 2 * 60 * 1000);
+    document.getElementById("save-btn").addEventListener("click", saveList);
   </script>
 </body>
 </html>
