@@ -50,12 +50,31 @@
       border: 1px solid #93c5fd;
       border-radius: 8px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-      padding: 15px;
+      padding: 10px 15px;
       margin-bottom: 15px;
       transition: box-shadow 0.2s;
     }
     li:hover {
       box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    }
+    .entry-content {
+      display: flex;
+      align-items: flex-start;
+    }
+    .drag-handle {
+      cursor: grab;
+      font-size: 1.2em;
+      padding-right: 10px;
+      user-select: none;
+    }
+    .entry-number {
+      width: 20px;
+      font-weight: bold;
+      text-align: right;
+      margin-right: 10px;
+    }
+    .entry-fields {
+      flex: 1;
     }
     input.title {
       width: 100%;
@@ -173,13 +192,19 @@
 
       let latestUpdate = null;
 
-      list.forEach(item => {
+      list.forEach((item, index) => {
         const li = document.createElement("li");
         li.dataset.id = item.id;
         li.innerHTML = `
-          <input class="title" type="text" value="${item.title || ""}" />
-          <textarea placeholder="Kommentar...">${item.comment || ""}</textarea>
-          <input class="status" type="text" placeholder="Status..." value="${item.status || ""}" />
+          <div class="entry-content">
+            <div class="drag-handle">☰</div>
+            <div class="entry-number">${index + 1}</div>
+            <div class="entry-fields">
+              <input class="title" type="text" value="${item.title || ""}" />
+              <textarea placeholder="Kommentar...">${item.comment || ""}</textarea>
+              <input class="status" type="text" placeholder="Status..." value="${item.status || ""}" />
+            </div>
+          </div>
         `;
         container.appendChild(li);
 
@@ -198,16 +223,12 @@
         document.getElementById("last-saved").textContent = `Letzte Änderung: nie`;
       }
 
-      new Sortable(container, { animation: 150 });
+      new Sortable(container, { animation: 150, handle: '.drag-handle' });
     }
 
     renderList();
     setInterval(renderList, 2 * 60 * 1000);
     document.getElementById("save-btn").addEventListener("click", saveList);
   </script>
-</body>
-</html>
-
-
 </body>
 </html>
