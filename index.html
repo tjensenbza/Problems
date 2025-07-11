@@ -39,6 +39,24 @@
       color: #555;
       margin-bottom: 20px;
     }
+    .list-wrapper {
+      display: flex;
+    }
+    .number-column {
+      display: flex;
+      flex-direction: column;
+      margin-right: 10px;
+    }
+    .number-column div {
+      font-weight: bold;
+      font-size: 1.6em;
+      color: #1d4ed8;
+      height: 120px; /* entspricht Feldhöhe */
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 10px;
+    }
     ul {
       list-style: none;
       padding: 0;
@@ -54,28 +72,16 @@
       padding: 10px 15px;
       margin-bottom: 15px;
       transition: box-shadow 0.2s;
-      display: flex;
-      align-items: center;
     }
     li:hover {
       box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
     }
-    .entry-number {
-      font-weight: bold;
-      font-size: 1.8em;
-      width: 40px;
-      text-align: right;
-      margin-right: 15px;
-      color: #1d4ed8;
-    }
     .drag-handle {
       cursor: grab;
-      font-size: 1.5em;
+      font-size: 1.2em;
       padding-right: 10px;
       user-select: none;
-    }
-    .entry-fields {
-      flex: 1;
+      display: inline-block;
     }
     input.title {
       width: 100%;
@@ -123,7 +129,21 @@
   </header>
   <main>
     <div id="last-saved">Letzte Änderung: nie</div>
-    <ul id="top10-list"></ul>
+    <div class="list-wrapper">
+      <div class="number-column">
+        <div>1</div>
+        <div>2</div>
+        <div>3</div>
+        <div>4</div>
+        <div>5</div>
+        <div>6</div>
+        <div>7</div>
+        <div>8</div>
+        <div>9</div>
+        <div>10</div>
+      </div>
+      <ul id="top10-list"></ul>
+    </div>
     <button id="save-btn">Speichern</button>
   </main>
 
@@ -188,17 +208,14 @@
 
       let latestUpdate = null;
 
-      list.forEach((item, index) => {
+      list.forEach((item) => {
         const li = document.createElement("li");
         li.dataset.id = item.id;
         li.innerHTML = `
-          <div class="entry-number">${index + 1}</div>
           <div class="drag-handle">☰</div>
-          <div class="entry-fields">
-            <input class="title" type="text" value="${item.title || ""}" />
-            <textarea placeholder="Kommentar...">${item.comment || ""}</textarea>
-            <input class="status" type="text" placeholder="Status..." value="${item.status || ""}" />
-          </div>
+          <input class="title" type="text" value="${item.title || ""}" />
+          <textarea placeholder="Kommentar...">${item.comment || ""}</textarea>
+          <input class="status" type="text" placeholder="Status..." value="${item.status || ""}" />
         `;
         container.appendChild(li);
 
