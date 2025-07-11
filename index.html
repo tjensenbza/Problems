@@ -3,93 +3,109 @@
 <head>
   <meta charset="UTF-8" />
   <title>Top 10 Aufgaben BZA</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Inter', sans-serif;
       background-color: #f0f4f8;
-      color: #333;
-      padding: 40px;
+      color: #1e3a8a;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      background-color: #1e3a8a;
+      padding: 10px 20px;
+    }
+    header img {
+      height: 40px;
+      margin-right: 15px;
+    }
+    header h1 {
+      color: white;
+      font-size: 1.5em;
+      margin: 0;
+    }
+    main {
+      padding: 30px;
       display: flex;
       flex-direction: column;
       align-items: center;
     }
-
-    h1 {
-      color: #1e3a8a;
-      margin-bottom: 10px;
-    }
-
     #last-saved {
       font-size: 0.9em;
       color: #555;
       margin-bottom: 20px;
     }
-
     ul {
       list-style: none;
       padding: 0;
       max-width: 700px;
       width: 100%;
     }
-
     li {
-      margin-bottom: 15px;
-      padding: 15px;
-      border: 2px solid #1e40af;
       background-color: #ffffff;
+      border: 1px solid #93c5fd;
       border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+      padding: 15px;
+      margin-bottom: 15px;
+      transition: box-shadow 0.2s;
     }
-
+    li:hover {
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    }
     input.title {
       width: 100%;
       font-size: 1.1em;
-      font-weight: bold;
-      color: #1e3a8a;
+      font-weight: 600;
       border: none;
-      border-bottom: 2px solid #93c5fd;
-      margin-bottom: 10px;
+      border-bottom: 2px solid #1d4ed8;
+      color: #1e3a8a;
       outline: none;
       background: transparent;
+      margin-bottom: 8px;
     }
-
     textarea,
     input.status {
       width: 100%;
-      margin-top: 8px;
+      margin-top: 6px;
       padding: 8px;
       border: 1px solid #cbd5e1;
       border-radius: 4px;
       resize: vertical;
     }
-
     textarea {
       height: 60px;
     }
-
     button {
-      margin-top: 20px;
-      padding: 12px 24px;
       background-color: #1d4ed8;
       color: white;
       border: none;
       border-radius: 6px;
+      padding: 12px 24px;
       font-size: 1em;
       cursor: pointer;
+      margin-top: 20px;
       transition: background-color 0.2s;
     }
-
     button:hover {
       background-color: #2563eb;
     }
   </style>
 </head>
 <body>
-  <h1>Top 10 Aufgaben BZA</h1>
-  <div id="last-saved">Letzte Änderung: nie</div>
-  <ul id="top10-list"></ul>
-  <button id="save-btn">Speichern</button>
+  <header>
+    <img src="semco_logo.svg" alt="Logo">
+    <h1>Top 10 Aufgaben BZA</h1>
+  </header>
+  <main>
+    <div id="last-saved">Letzte Änderung: nie</div>
+    <ul id="top10-list"></ul>
+    <button id="save-btn">Speichern</button>
+  </main>
 
   <script type="module">
     const SUPABASE_URL = "https://fdsedmqvonfsegyfvqwq.supabase.co";
@@ -108,7 +124,6 @@
 
     async function saveList() {
       console.log("🔵 Speichervorgang gestartet...");
-      const items = [];
       const now = new Date().toISOString();
       const listItems = document.querySelectorAll("#top10-list li");
 
@@ -141,13 +156,13 @@
         }
       }
 
-      updateLastSavedTime();
+      updateLastSavedTime(now);
       alert("Liste gespeichert!");
     }
 
-    function updateLastSavedTime() {
-      const now = new Date();
-      const formatted = now.toLocaleString("de-DE");
+    function updateLastSavedTime(latestIso) {
+      const date = latestIso ? new Date(latestIso) : new Date();
+      const formatted = date.toLocaleString("de-DE");
       document.getElementById("last-saved").textContent = `Letzte Änderung: ${formatted}`;
     }
 
@@ -155,6 +170,9 @@
       const list = await fetchList();
       const container = document.getElementById("top10-list");
       container.innerHTML = "";
+
+      let latestUpdate = null;
+
       list.forEach(item => {
         const li = document.createElement("li");
         li.dataset.id = item.id;
@@ -164,7 +182,21 @@
           <input class="status" type="text" placeholder="Status..." value="${item.status || ""}" />
         `;
         container.appendChild(li);
+
+        if (item.last_updated) {
+          const updatedDate = new Date(item.last_updated);
+          if (!latestUpdate || updatedDate > latestUpdate) {
+            latestUpdate = updatedDate;
+          }
+        }
       });
+
+      if (latestUpdate) {
+        const formatted = latestUpdate.toLocaleString("de-DE");
+        document.getElementById("last-saved").textContent = `Letzte Änderung: ${formatted}`;
+      } else {
+        document.getElementById("last-saved").textContent = `Letzte Änderung: nie`;
+      }
 
       new Sortable(container, { animation: 150 });
     }
