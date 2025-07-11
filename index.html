@@ -39,9 +39,27 @@
       color: #555;
       margin-bottom: 20px;
     }
+    .list-container {
+      display: flex;
+    }
+    .number-column {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      margin-right: 10px;
+    }
+    .number-column div {
+      height: 108px;
+      line-height: 108px;
+      font-weight: bold;
+      width: 20px;
+      text-align: right;
+      color: #1e3a8a;
+    }
     ul {
       list-style: none;
       padding: 0;
+      margin: 0;
       max-width: 700px;
       width: 100%;
     }
@@ -66,12 +84,6 @@
       font-size: 1.2em;
       padding-right: 10px;
       user-select: none;
-    }
-    .entry-number {
-      width: 20px;
-      font-weight: bold;
-      text-align: right;
-      margin-right: 10px;
     }
     .entry-fields {
       flex: 1;
@@ -122,7 +134,21 @@
   </header>
   <main>
     <div id="last-saved">Letzte Änderung: nie</div>
-    <ul id="top10-list"></ul>
+    <div class="list-container">
+      <div class="number-column">
+        <div>1</div>
+        <div>2</div>
+        <div>3</div>
+        <div>4</div>
+        <div>5</div>
+        <div>6</div>
+        <div>7</div>
+        <div>8</div>
+        <div>9</div>
+        <div>10</div>
+      </div>
+      <ul id="top10-list"></ul>
+    </div>
     <button id="save-btn">Speichern</button>
   </main>
 
@@ -142,7 +168,6 @@
     }
 
     async function saveList() {
-      console.log("🔵 Speichervorgang gestartet...");
       const now = new Date().toISOString();
       const listItems = document.querySelectorAll("#top10-list li");
 
@@ -153,7 +178,7 @@
         const comment = li.querySelector("textarea").value.trim();
         const status = li.querySelector("input.status").value.trim();
 
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/top10_items?id=eq.${id}`, {
+        await fetch(`${SUPABASE_URL}/rest/v1/top10_items?id=eq.${id}`, {
           method: "PATCH",
           headers: {
             apikey: SUPABASE_KEY,
@@ -169,10 +194,6 @@
             last_updated: now
           })
         });
-
-        if (!res.ok) {
-          console.error("❌ Fehler beim Speichern von Eintrag:", id);
-        }
       }
 
       updateLastSavedTime(now);
@@ -192,13 +213,12 @@
 
       let latestUpdate = null;
 
-      list.forEach((item, index) => {
+      list.forEach((item) => {
         const li = document.createElement("li");
         li.dataset.id = item.id;
         li.innerHTML = `
           <div class="entry-content">
             <div class="drag-handle">☰</div>
-            <div class="entry-number">${index + 1}</div>
             <div class="entry-fields">
               <input class="title" type="text" value="${item.title || ""}" />
               <textarea placeholder="Kommentar...">${item.comment || ""}</textarea>
