@@ -40,21 +40,26 @@
       color: #555;
       margin-bottom: 20px;
     }
-    .list-row {
+    .list-container {
       display: flex;
-      align-items: stretch;
-      margin-bottom: 15px;
-      width: calc(700px + 60px);
+    }
+    .number-column {
+      display: flex;
+      flex-direction: column;
+      margin-right: 10px;
     }
     .number-cell {
-      width: 60px;
-      font-size: 2.2em;
       font-weight: bold;
-      text-align: center;
+      font-size: 2.2em;
       color: #1d4ed8;
+      height: 130px;
       display: flex;
       align-items: center;
       justify-content: center;
+    }
+    .sortable-column {
+      display: flex;
+      flex-direction: column;
     }
     .list-item {
       width: 700px;
@@ -64,6 +69,7 @@
       border-radius: 8px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
       padding: 10px 15px;
+      margin-bottom: 15px;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -152,7 +158,10 @@
 
     <div id="app-section" style="display:none;">
       <div id="last-saved">Letzte Änderung: nie</div>
-      <div id="top10-wrapper"></div>
+      <div class="list-container">
+        <div class="number-column" id="number-column"></div>
+        <div class="sortable-column" id="sortable-column"></div>
+      </div>
       <button id="save-btn">Speichern</button>
       <button id="logout-btn">Logout</button>
     </div>
@@ -237,19 +246,21 @@
 
     async function renderList() {
       const list = await fetchList();
-      const wrapper = document.getElementById("top10-wrapper");
-      wrapper.innerHTML = "";
+      const numberColumn = document.getElementById("number-column");
+      const sortableColumn = document.getElementById("sortable-column");
+      numberColumn.innerHTML = "";
+      sortableColumn.innerHTML = "";
 
       let latestUpdate = null;
 
-      list.forEach((item, index) => {
-        const row = document.createElement("div");
-        row.className = "list-row";
+      for (let i = 0; i < 10; i++) {
+        const numCell = document.createElement("div");
+        numCell.className = "number-cell";
+        numCell.textContent = i + 1;
+        numberColumn.appendChild(numCell);
+      }
 
-        const number = document.createElement("div");
-        number.className = "number-cell";
-        number.textContent = index + 1;
-
+      list.forEach((item) => {
         const li = document.createElement("div");
         li.className = "list-item";
         li.dataset.id = item.id;
@@ -259,10 +270,7 @@
           <textarea placeholder="Kommentar...">${item.comment || ""}</textarea>
           <input class="status" type="text" placeholder="Status..." value="${item.status || ""}" />
         `;
-
-        row.appendChild(number);
-        row.appendChild(li);
-        wrapper.appendChild(row);
+        sortableColumn.appendChild(li);
 
         if (item.last_updated) {
           const updatedDate = new Date(item.last_updated);
@@ -279,11 +287,9 @@
         document.getElementById("last-saved").textContent = `Letzte Änderung: nie`;
       }
 
-      // Drag&Drop Fix:
-      new Sortable(wrapper, {
+      new Sortable(sortableColumn, {
         animation: 150,
         handle: '.drag-handle',
-        draggable: '.list-row'
       });
     }
 
