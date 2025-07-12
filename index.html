@@ -46,17 +46,18 @@
     .number-column {
       display: flex;
       flex-direction: column;
+      align-items: flex-end;
       margin-right: 10px;
     }
-    .number-cell {
-      font-weight: bold;
-      font-size: 2.2em;
-      color: #1d4ed8;
-      height: auto;
+    .number-label {
       min-height: 140px;
+      height: 100%;
       display: flex;
       align-items: center;
       justify-content: center;
+      font-weight: bold;
+      font-size: 1.5em;
+      color: #1e3a8a;
     }
     .sortable-column {
       display: flex;
@@ -75,6 +76,7 @@
       flex-direction: column;
       justify-content: center;
       transition: box-shadow 0.2s;
+      min-height: 140px;
     }
     .list-item:hover {
       box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
@@ -252,14 +254,14 @@
       numberColumn.innerHTML = "";
       sortableColumn.innerHTML = "";
 
-      for (let i = 0; i < 10; i++) {
-        const numCell = document.createElement("div");
-        numCell.className = "number-cell";
-        numCell.textContent = i + 1;
-        numberColumn.appendChild(numCell);
-      }
+      let latestUpdate = null;
 
-      list.forEach((item) => {
+      list.forEach((item, index) => {
+        const numLabel = document.createElement("div");
+        numLabel.className = "number-label";
+        numLabel.textContent = index + 1;
+        numberColumn.appendChild(numLabel);
+
         const li = document.createElement("div");
         li.className = "list-item";
         li.dataset.id = item.id;
@@ -270,7 +272,21 @@
           <input class="status" type="text" placeholder="Status..." value="${item.status || ""}" />
         `;
         sortableColumn.appendChild(li);
+
+        if (item.last_updated) {
+          const updatedDate = new Date(item.last_updated);
+          if (!latestUpdate || updatedDate > latestUpdate) {
+            latestUpdate = updatedDate;
+          }
+        }
       });
+
+      if (latestUpdate) {
+        const formatted = latestUpdate.toLocaleString("de-DE");
+        document.getElementById("last-saved").textContent = `Letzte Änderung: ${formatted}`;
+      } else {
+        document.getElementById("last-saved").textContent = `Letzte Änderung: nie`;
+      }
 
       new Sortable(sortableColumn, {
         animation: 150,
