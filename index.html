@@ -101,7 +101,7 @@
     }
     textarea,
     input.status,
-    input.datum,
+    input.created_at,
     input.assigned {
       width: 100%;
       box-sizing: border-box;
@@ -233,11 +233,17 @@
         const title = li.querySelector("input.title").value.trim();
         const comment = li.querySelector("textarea").value.trim();
         const status = li.querySelector("input.status").value.trim();
-        const datum = li.querySelector("input.datum").value.trim();
+        const createdAt = li.querySelector("input.created_at").value.trim();
         const assignedTo = li.querySelector("input.assigned").value.trim();
 
         await supabase.from("top10_items").update({
-          position: i + 1, title, comment, status, datum, assigned_to: assignedTo, last_updated: now
+          position: i + 1,
+          title,
+          comment,
+          status,
+          created_at: createdAt,
+          assigned_to: assignedTo,
+          last_updated: now
         }).eq("id", id);
       }
 
@@ -274,7 +280,7 @@
           <input class="title" type="text" value="${item.title || ""}" />
           <textarea placeholder="Kommentar...">${item.comment || ""}</textarea>
           <input class="status" type="text" placeholder="Status..." value="${item.status || ""}" />
-          <input class="datum" type="text" placeholder="Datum..." value="${item.datum || ""}" />
+          <input class="created_at" type="text" placeholder="Erstellungsdatum..." value="${item.created_at || ""}" />
           <input class="assigned" type="text" placeholder="Zugeteilt an..." value="${item.assigned_to || ""}" />
         `;
         sortableColumn.appendChild(li);
