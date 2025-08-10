@@ -7,143 +7,97 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
   <style>
+    :root {
+      --blue: #1d4ed8;
+      --blue-dark: #1e3a8a;
+      --blue-border: #1e40af;
+      --card-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    }
+    * { box-sizing: border-box; }
     body {
       font-family: 'Inter', sans-serif;
       background-color: #f0f4f8;
       color: #1e3a8a;
       margin: 0;
-      padding: 0;
     }
     header {
-      display: flex;
-      align-items: center;
-      background-color: #1e3a8a;
+      display: flex; align-items: center;
+      background-color: var(--blue-dark);
       padding: 10px 20px;
     }
-    header img {
-      height: 40px;
-      margin-right: 15px;
+    header img { height: 40px; margin-right: 15px; }
+    header h1 { color: white; font-size: 1.5em; margin: 0; }
+
+    nav.tabs {
+      display: flex; gap: 10px; padding: 12px 20px; background: #e8eef8;
+      align-items: center; justify-content: flex-start;
     }
-    header h1 {
-      color: white;
-      font-size: 1.5em;
-      margin: 0;
+    .tab-btn {
+      background: white; border: 1px solid #93c5fd; color: var(--blue-dark);
+      border-radius: 999px; padding: 8px 14px; cursor: pointer;
     }
-    main {
-      padding: 30px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+    .tab-btn.active {
+      background: var(--blue); color: white; border-color: var(--blue);
     }
-    #last-saved {
-      font-size: 0.9em;
-      color: #555;
-      margin-bottom: 20px;
-    }
-    .list-container {
-      display: flex;
-    }
-    .number-column {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      margin-right: 10px;
-    }
-    .number-label {
-      min-height: 140px;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      font-size: 1.5em;
-      color: #1e3a8a;
-    }
-    .sortable-column {
-      display: flex;
-      flex-direction: column;
-    }
-    .list-item {
-      width: 700px;
-      box-sizing: border-box;
-      background-color: #ffffff;
-      border: 2px solid #1e40af;
-      border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-      padding: 10px 15px;
-      margin-bottom: 15px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      transition: box-shadow 0.2s;
-      min-height: 140px;
-    }
-    .list-item:hover {
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-    }
-    .drag-handle {
-      cursor: grab;
-      font-size: 1.4em;
-      user-select: none;
-      margin-bottom: 5px;
-    }
-    input.title {
-      width: 100%;
-      font-size: 1.1em;
-      font-weight: 600;
-      border: none;
-      border-bottom: 2px solid #1d4ed8;
-      color: #1e3a8a;
-      outline: none;
-      background: transparent;
-      margin-bottom: 8px;
-      box-sizing: border-box;
-    }
-    textarea,
-    input.status,
-    input.created_at,
-    input.assigned {
-      width: 100%;
-      box-sizing: border-box;
-      margin-top: 6px;
-      padding: 8px;
-      border: 1px solid #cbd5e1;
-      border-radius: 4px;
-      resize: vertical;
-    }
-    textarea {
-      height: 60px;
-    }
-    button {
-      background-color: #1d4ed8;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      padding: 12px 24px;
-      font-size: 1em;
-      cursor: pointer;
-      margin-top: 20px;
-      transition: background-color 0.2s;
-    }
-    button:hover {
-      background-color: #2563eb;
-    }
+
+    main { padding: 20px; display: flex; flex-direction: column; align-items: center; }
+
+    /* Login */
+    #auth-section { margin-bottom: 16px; }
     #login-form {
-      background: #fff;
-      border: 1px solid #93c5fd;
-      border-radius: 8px;
-      padding: 20px;
-      width: 300px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      background: #fff; border: 1px solid #93c5fd; border-radius: 8px; padding: 20px; width: 300px;
+      box-shadow: var(--card-shadow);
     }
     #logout-btn {
-      background: transparent;
-      border: none;
-      color: #1e3a8a;
-      cursor: pointer;
-      text-decoration: underline;
-      margin-top: 10px;
+      background: transparent; border: none; color: var(--blue-dark);
+      cursor: pointer; text-decoration: underline; margin-top: 10px;
     }
+
+    /* Top-10: fixierte Nummern links, Karten rechts */
+    .list-container { display: flex; }
+    .number-column { display: flex; flex-direction: column; margin-right: 10px; }
+    .number-cell {
+      font-weight: bold; font-size: 2.2em; color: var(--blue);
+      min-height: 140px; display: flex; align-items: center; justify-content: center;
+    }
+    .readonly-column, .sortable-column { display: flex; flex-direction: column; }
+    .list-item, .list-item-readonly {
+      width: 700px; background: #fff; border: 2px solid var(--blue-border); border-radius: 8px;
+      box-shadow: var(--card-shadow); padding: 10px 15px; margin-bottom: 15px;
+      display: flex; flex-direction: column; justify-content: center; transition: box-shadow .2s;
+    }
+    .list-item:hover, .list-item-readonly:hover { box-shadow: 0 6px 12px rgba(0,0,0,0.1); }
+    .drag-handle { cursor: grab; font-size: 1.4em; user-select: none; margin-bottom: 5px; }
+    input.title, input.title[disabled] {
+      width: 100%; font-size: 1.1em; font-weight: 600; border: none; border-bottom: 2px solid var(--blue);
+      color: var(--blue-dark); outline: none; background: transparent; margin-bottom: 8px;
+    }
+    textarea, input.status, textarea[disabled], input.status[disabled] {
+      width: 100%; margin-top: 6px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; resize: vertical;
+    }
+    textarea { height: 60px; }
+    #last-saved, #last-saved-view { font-size: .9em; color: #555; margin: 10px 0 20px; }
+    .primary-btn {
+      background-color: var(--blue); color: white; border: none; border-radius: 6px;
+      padding: 12px 24px; font-size: 1em; cursor: pointer; transition: background-color .2s;
+    }
+    .primary-btn:hover { background-color: #2563eb; }
+
+    /* Vorschläge */
+    .suggestions-wrap { width: 760px; max-width: 100%; }
+    .suggestion-form, .suggestion-card {
+      background: #fff; border: 1px solid #93c5fd; border-radius: 8px; padding: 16px; box-shadow: var(--card-shadow);
+    }
+    .suggestion-form { margin-bottom: 16px; }
+    .suggestion-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    .suggestion-card h3 { margin: 0 0 8px; color: var(--blue-dark); }
+    .suggestion-meta { font-size: .85em; color: #666; margin-top: 6px; }
+    .delete-btn {
+      background: transparent; border: 1px solid #ef4444; color: #ef4444; border-radius: 6px;
+      padding: 6px 10px; cursor: pointer; margin-top: 8px;
+    }
+    .delete-btn:hover { background: #fee2e2; }
+    .field { width: 100%; margin-bottom: 8px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; }
   </style>
 </head>
 <body>
@@ -151,162 +105,231 @@
     <img src="semco_logo.svg" alt="Logo">
     <h1>Top 10 Aufgaben BZA</h1>
   </header>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="liste">Liste</button>
+    <button class="tab-btn" data-tab="vorschlaege">Vorschläge</button>
+  </nav>
+
   <main>
+    <!-- Login -->
     <div id="auth-section">
       <form id="login-form">
         <h2>Login</h2>
-        <input type="email" id="email" placeholder="Email" required style="width:100%; margin-bottom:10px; padding:8px;">
-        <input type="password" id="password" placeholder="Passwort" required style="width:100%; margin-bottom:10px; padding:8px;">
-        <button type="submit">Login</button>
+        <input type="email" id="email" placeholder="Email" required class="field">
+        <input type="password" id="password" placeholder="Passwort" required class="field">
+        <button type="submit" class="primary-btn">Login</button>
       </form>
     </div>
 
-    <div id="app-section" style="display:none;">
-      <div id="last-saved">Letzte Änderung: nie</div>
-      <div class="list-container">
-        <div class="number-column" id="number-column"></div>
-        <div class="sortable-column" id="sortable-column"></div>
+    <!-- Liste -->
+    <section id="tab-liste">
+      <!-- View -->
+      <div id="view-section">
+        <div id="last-saved-view">Letzte Änderung: nie</div>
+        <div class="list-container">
+          <div class="number-column" id="number-column-view"></div>
+          <div class="readonly-column" id="readonly-column"></div>
+        </div>
       </div>
-      <button id="save-btn">Speichern</button>
-      <button id="logout-btn">Logout</button>
-    </div>
+
+      <!-- Edit -->
+      <div id="app-section" style="display:none;">
+        <div id="last-saved">Letzte Änderung: nie</div>
+        <div class="list-container">
+          <div class="number-column" id="number-column-edit"></div>
+          <div class="sortable-column" id="sortable-column"></div>
+        </div>
+        <button id="save-btn" class="primary-btn">Speichern</button>
+        <button id="logout-btn">Logout</button>
+      </div>
+    </section>
+
+    <!-- Vorschläge -->
+    <section id="tab-vorschlaege" style="display:none;">
+      <div class="suggestions-wrap">
+        <div class="suggestion-form">
+          <h2>Vorschlag einreichen (ohne Anmeldung)</h2>
+          <input id="sugg-title" class="field" type="text" placeholder="Titel" required>
+          <textarea id="sugg-comment" class="field" placeholder="Kommentar (optional)" rows="4"></textarea>
+          <button id="sugg-submit" class="primary-btn">Absenden</button>
+          <div id="sugg-message" style="margin-top:8px; font-size:.9em;"></div>
+        </div>
+        <div class="suggestion-grid" id="suggestion-list"></div>
+      </div>
+    </section>
   </main>
 
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-
     const SUPABASE_URL = "https://fdsedmqvonfsegyfvqwq.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZkc2VkbXF2b25mc2VneWZ2cXdxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE0NDA3MTUsImV4cCI6MjA2NzAxNjcxNX0.85AKLlUGAtOsLm8Om6rx19ZpPBYF8kf3xrL6NiTPCME";
-
     const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabListe = document.getElementById('tab-liste');
+    const tabVorschlaege = document.getElementById('tab-vorschlaege');
+    tabButtons.forEach(btn => btn.addEventListener('click', () => {
+      tabButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const t = btn.dataset.tab;
+      tabListe.style.display = t === 'liste' ? 'block' : 'none';
+      tabVorschlaege.style.display = t === 'vorschlaege' ? 'block' : 'none';
+      if (t === 'liste') renderTop10();
+      else renderSuggestions();
+    }));
 
     async function checkSession() {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        showApp();
-      } else {
-        showLogin();
-      }
+      if (session) enableEditMode(); else enableViewMode();
+      renderTop10();
+      renderSuggestions();
+      setInterval(() => {
+        if (tabListe.style.display !== 'none') renderTop10();
+        if (tabVorschlaege.style.display !== 'none') renderSuggestions();
+      }, 120000);
     }
-
-    function showApp() {
+    function enableEditMode() {
       document.getElementById("auth-section").style.display = "none";
       document.getElementById("app-section").style.display = "block";
-      renderList();
-      setInterval(renderList, 2 * 60 * 1000);
+      document.getElementById("view-section").style.display = "none";
     }
-
-    function showLogin() {
+    function enableViewMode() {
       document.getElementById("auth-section").style.display = "block";
       document.getElementById("app-section").style.display = "none";
+      document.getElementById("view-section").style.display = "block";
     }
-
     document.getElementById("login-form").addEventListener("submit", async (e) => {
       e.preventDefault();
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        alert("Login fehlgeschlagen: " + error.message);
-      } else {
-        showApp();
-      }
+      const { error } = await supabase.auth.signInWithPassword({
+        email: document.getElementById("email").value,
+        password: document.getElementById("password").value
+      });
+      if (error) alert("Login fehlgeschlagen: " + error.message);
+      else { enableEditMode(); renderTop10(); }
     });
-
     document.getElementById("logout-btn").addEventListener("click", async () => {
       await supabase.auth.signOut();
-      showLogin();
+      enableViewMode();
+      renderTop10();
     });
 
-    async function fetchList() {
+    async function fetchTop10() {
       const { data } = await supabase.from("top10_items").select("*").order("position");
-      return data;
+      return data || [];
     }
-
-    async function saveList() {
+    function updateLastSaved(iso, editable) {
+      const txt = `Letzte Änderung: ${new Date(iso).toLocaleString("de-DE")}`;
+      (editable ? document.getElementById("last-saved") : document.getElementById("last-saved-view")).textContent = txt;
+    }
+    async function saveTop10() {
       const now = new Date().toISOString();
-      const listItems = document.querySelectorAll(".sortable-column .list-item");
-
+      const listItems = document.querySelectorAll("#sortable-column .list-item");
       for (let i = 0; i < listItems.length; i++) {
-        const li = listItems[i];
-        const id = parseInt(li.dataset.id, 10);
-        const title = li.querySelector("input.title").value.trim();
-        const comment = li.querySelector("textarea").value.trim();
-        const status = li.querySelector("input.status").value.trim();
-        const createdAt = li.querySelector("input.created_at").value.trim();
-        const assignedTo = li.querySelector("input.assigned").value.trim();
-
+        const card = listItems[i];
         await supabase.from("top10_items").update({
           position: i + 1,
-          title,
-          comment,
-          status,
-          created_at: createdAt,
-          assigned_to: assignedTo,
+          title: card.querySelector("input.title").value.trim(),
+          comment: card.querySelector("textarea").value.trim(),
+          status: card.querySelector("input.status").value.trim(),
           last_updated: now
-        }).eq("id", id);
+        }).eq("id", parseInt(card.dataset.id, 10));
       }
-
-      updateLastSavedTime(now);
+      updateLastSaved(now, true);
       alert("Liste gespeichert!");
     }
+    document.getElementById("save-btn").addEventListener("click", saveTop10);
 
-    function updateLastSavedTime(latestIso) {
-      const date = new Date(latestIso);
-      const formatted = date.toLocaleString("de-DE");
-      document.getElementById("last-saved").textContent = `Letzte Änderung: ${formatted}`;
-    }
-
-    async function renderList() {
-      const list = await fetchList();
-      const numberColumn = document.getElementById("number-column");
-      const sortableColumn = document.getElementById("sortable-column");
-      numberColumn.innerHTML = "";
-      sortableColumn.innerHTML = "";
-
-      let latestUpdate = null;
-
-      list.forEach((item, index) => {
-        const numLabel = document.createElement("div");
-        numLabel.className = "number-label";
-        numLabel.textContent = index + 1;
-        numberColumn.appendChild(numLabel);
-
-        const li = document.createElement("div");
-        li.className = "list-item";
-        li.dataset.id = item.id;
-        li.innerHTML = `
-          <div class="drag-handle">☰</div>
-          <input class="title" type="text" value="${item.title || ""}" />
-          <textarea placeholder="Kommentar...">${item.comment || ""}</textarea>
-          <input class="status" type="text" placeholder="Status..." value="${item.status || ""}" />
-          <input class="created_at" type="text" placeholder="Erstellungsdatum..." value="${item.created_at || ""}" />
-          <input class="assigned" type="text" placeholder="Zugeteilt an..." value="${item.assigned_to || ""}" />
-        `;
-        sortableColumn.appendChild(li);
-
-        if (item.last_updated) {
-          const updatedDate = new Date(item.last_updated);
-          if (!latestUpdate || updatedDate > latestUpdate) {
-            latestUpdate = updatedDate;
-          }
-        }
-      });
-
-      if (latestUpdate) {
-        const formatted = latestUpdate.toLocaleString("de-DE");
-        document.getElementById("last-saved").textContent = `Letzte Änderung: ${formatted}`;
-      } else {
-        document.getElementById("last-saved").textContent = `Letzte Änderung: nie`;
+    async function renderTop10() {
+      const list = await fetchTop10();
+      let latest = null;
+      for (const it of list) if (it.last_updated) {
+        const d = new Date(it.last_updated); if (!latest || d > latest) latest = d;
       }
-
-      new Sortable(sortableColumn, {
-        animation: 150,
-        handle: '.drag-handle',
+      document.getElementById("last-saved-view").textContent = latest ? `Letzte Änderung: ${latest.toLocaleString("de-DE")}` : "Letzte Änderung: nie";
+      if (document.getElementById("app-section").style.display === "block") {
+        document.getElementById("last-saved").textContent = latest ? `Letzte Änderung: ${latest.toLocaleString("de-DE")}` : "Letzte Änderung: nie";
+      }
+      const numView = document.getElementById("number-column-view");
+      const numEdit = document.getElementById("number-column-edit");
+      numView.innerHTML = ""; numEdit.innerHTML = "";
+      for (let i = 0; i < 10; i++) {
+        const d = document.createElement("div"); d.className="number-cell"; d.textContent = i+1; numView.appendChild(d);
+        const e = document.createElement("div"); e.className="number-cell"; e.textContent = i+1; numEdit.appendChild(e);
+      }
+      const ro = document.getElementById("readonly-column");
+      ro.innerHTML = "";
+      list.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "list-item-readonly";
+        card.innerHTML = `<input class="title" value="${item.title || ""}" disabled />
+                          <textarea disabled>${item.comment || ""}</textarea>
+                          <input class="status" value="${item.status || ""}" disabled />`;
+        ro.appendChild(card);
       });
+      const sc = document.getElementById("sortable-column");
+      sc.innerHTML = "";
+      list.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "list-item";
+        card.dataset.id = item.id;
+        card.innerHTML = `<div class="drag-handle">☰</div>
+                          <input class="title" value="${item.title || ""}" />
+                          <textarea placeholder="Kommentar...">${item.comment || ""}</textarea>
+                          <input class="status" placeholder="Status..." value="${item.status || ""}" />`;
+        sc.appendChild(card);
+      });
+      new Sortable(sc, { animation: 150, handle: '.drag-handle' });
     }
 
-    document.getElementById("save-btn").addEventListener("click", saveList);
+    async function fetchSuggestions() {
+      const { data } = await supabase.from("suggestions").select("*").order("created_at", { ascending: false });
+      return data || [];
+    }
+    async function submitSuggestion() {
+      const title = document.getElementById("sugg-title").value.trim();
+      const comment = document.getElementById("sugg-comment").value.trim();
+      const msg = document.getElementById("sugg-message");
+      if (!title) { msg.textContent = "Bitte einen Titel eingeben."; msg.style.color = "#b91c1c"; return; }
+      msg.textContent = "Sende..."; msg.style.color = "#555";
+      const { error } = await supabase.from("suggestions").insert({ title, comment });
+      if (error) { msg.textContent = "Fehler: " + error.message; msg.style.color = "#b91c1c"; }
+      else {
+        msg.textContent = "Danke! Vorschlag eingereicht."; msg.style.color = "#166534";
+        document.getElementById("sugg-title").value = "";
+        document.getElementById("sugg-comment").value = "";
+        renderSuggestions();
+      }
+    }
+    document.getElementById("sugg-submit").addEventListener("click", submitSuggestion);
+
+    async function deleteSuggestion(id) {
+      if (!confirm("Vorschlag löschen?")) return;
+      await supabase.from("suggestions").delete().eq("id", id);
+      renderSuggestions();
+    }
+    async function renderSuggestions() {
+      const list = await fetchSuggestions();
+      const grid = document.getElementById("suggestion-list");
+      grid.innerHTML = "";
+      const { data: { session } } = await supabase.auth.getSession();
+      const isAuth = !!session;
+      list.forEach(s => {
+        const card = document.createElement("div");
+        card.className = "suggestion-card";
+        card.innerHTML = `<h3>${s.title || ""}</h3>
+                          <div>${(s.comment || "").replace(/\n/g, "<br>")}</div>
+                          <div class="suggestion-meta">Eingereicht am ${new Date(s.created_at).toLocaleString("de-DE")}</div>`;
+        if (isAuth) {
+          const del = document.createElement("button");
+          del.className = "delete-btn";
+          del.textContent = "Löschen (nur Login)";
+          del.addEventListener("click", () => deleteSuggestion(s.id));
+          card.appendChild(del);
+        }
+        grid.appendChild(card);
+      });
+    }
 
     checkSession();
   </script>
