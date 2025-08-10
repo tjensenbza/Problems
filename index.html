@@ -67,7 +67,7 @@
       width: 100%;
       display: flex; align-items: center; justify-content: center;
       font-weight: bold; font-size: 2.2em; color: var(--blue);
-      /* Höhe wird per JS gesetzt, damit immer exakt zur Karte passt */
+      /* Höhe wird per JS gesetzt */
     }
     .readonly-column, .sortable-column {
       display: flex; flex-direction: column; gap: var(--row-gap);
@@ -77,10 +77,11 @@
       background: #fff; border: 2px solid var(--blue-border); border-radius: 8px;
       box-shadow: var(--card-shadow); padding: 10px 15px;
       display: flex; flex-direction: column; justify-content: center; transition: box-shadow .2s;
-      /* kein margin-bottom mehr – Abstand kommt über gap der Spalte */
     }
     .list-item:hover, .list-item-readonly:hover { box-shadow: 0 6px 12px rgba(0,0,0,0.1); }
-    .drag-handle { cursor: grab; font-size: 1.4em; user-select: none; margin-bottom: 5px; }
+    .drag-handle { cursor: grab; font-size: 1.4em; user-select: none; margin-bottom: 5px; touch-action: none; }
+    .drag-ghost { opacity: 0.7; }
+
     input.title, input.title[disabled] {
       width: 100%; font-size: 1.1em; font-weight: 600; border: none; border-bottom: 2px solid var(--blue);
       color: var(--blue-dark); outline: none; background: transparent; margin-bottom: 8px;
@@ -191,9 +192,7 @@
       const t = btn.dataset.tab;
       tabListe.style.display = t === 'liste' ? 'block' : 'none';
       tabVorschlaege.style.display = t === 'vorschlaege' ? 'block' : 'none';
-      if (t === 'liste') renderTop10();
-      else renderSuggestions();
-      // nach Tabwechsel Höhen synchronisieren
+      if (t === 'liste') renderTop10(); else renderSuggestions();
       setTimeout(syncAllNumberHeights, 0);
     }));
 
@@ -204,8 +203,8 @@
       renderTop10();
       renderSuggestions();
       setInterval(() => {
-        if (tabListe.style.display !== 'none') { renderTop10(); }
-        if (tabVorschlaege.style.display !== 'none') { renderSuggestions(); }
+        if (tabListe.style.display !== 'none') renderTop10();
+        if (tabVorschlaege.style.display !== 'none') renderSuggestions();
       }, 120000);
     }
     function enableEditMode() {
@@ -312,14 +311,20 @@
         sc.appendChild(card);
       });
 
-      // Eingaben -> Höhen synchronisieren (Titel/Kommentar/Status ändern Höhe)
+      // Eingaben -> Höhen synchronisieren
       sc.addEventListener('input', debounce(syncAllNumberHeights, 50));
       ro.addEventListener('input', debounce(syncAllNumberHeights, 50));
 
-      // Sortable nur im Editbereich
-      new Sortable(sc, {
+      // --- Sortable: alte Instanz zerstören, neu initialisieren ---
+      if (window.__sortableInstance) {
+        window.__sortableInstance.destroy();
+        window.__sortableInstance = null;
+      }
+      window.__sortableInstance = new Sortable(sc, {
         animation: 150,
         handle: '.drag-handle',
+        draggable: '.list-item',
+        ghostClass: 'drag-ghost',
         onEnd() { syncAllNumberHeights(); }
       });
 
@@ -384,7 +389,7 @@
       });
     }
 
-    // ---------- Höhen-Sync für Nummern <-> Karten (robust) ----------
+    // ---------- Höhen-Sync für Nummern <-> Karten ----------
     function syncPair(numberColumnId, cardsColumnId) {
       const numCol = document.getElementById(numberColumnId);
       const cardsCol = document.getElementById(cardsColumnId);
@@ -401,7 +406,6 @@
       syncPair('number-column-edit', 'sortable-column');
     }
     function rafSync() {
-      // zweimal hintereinander, falls Fonts/Layout nachträglich finalisieren
       requestAnimationFrame(() => {
         syncAllNumberHeights();
         requestAnimationFrame(syncAllNumberHeights);
@@ -409,7 +413,7 @@
     }
     window.addEventListener('resize', debounce(syncAllNumberHeights, 50));
 
-    // kleines Debounce-Helferlein
+    // kleines Debounce
     function debounce(fn, ms) {
       let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
     }
