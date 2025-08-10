@@ -12,6 +12,9 @@
       --blue-dark: #1e3a8a;
       --blue-border: #1e40af;
       --card-shadow: 0 4px 8px rgba(0,0,0,0.05);
+      --row-gap: 15px;
+      --num-col-width: 60px;
+      --card-width: 700px;
     }
     * { box-sizing: border-box; }
     body {
@@ -55,16 +58,26 @@
 
     /* Top-10: fixierte Nummern links, Karten rechts */
     .list-container { display: flex; }
-    .number-column { display: flex; flex-direction: column; margin-right: 10px; }
-    .number-cell {
-      font-weight: bold; font-size: 2.2em; color: var(--blue);
-      min-height: 140px; display: flex; align-items: center; justify-content: center;
+    .number-column {
+      width: var(--num-col-width);
+      display: flex; flex-direction: column; gap: var(--row-gap);
+      margin-right: 10px;
     }
-    .readonly-column, .sortable-column { display: flex; flex-direction: column; }
+    .number-cell {
+      width: 100%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: bold; font-size: 2.2em; color: var(--blue);
+      /* Höhe wird per JS gesetzt, damit immer exakt zur Karte passt */
+    }
+    .readonly-column, .sortable-column {
+      display: flex; flex-direction: column; gap: var(--row-gap);
+    }
     .list-item, .list-item-readonly {
-      width: 700px; background: #fff; border: 2px solid var(--blue-border); border-radius: 8px;
-      box-shadow: var(--card-shadow); padding: 10px 15px; margin-bottom: 15px;
+      width: var(--card-width);
+      background: #fff; border: 2px solid var(--blue-border); border-radius: 8px;
+      box-shadow: var(--card-shadow); padding: 10px 15px;
       display: flex; flex-direction: column; justify-content: center; transition: box-shadow .2s;
+      /* kein margin-bottom mehr – Abstand kommt über gap der Spalte */
     }
     .list-item:hover, .list-item-readonly:hover { box-shadow: 0 6px 12px rgba(0,0,0,0.1); }
     .drag-handle { cursor: grab; font-size: 1.4em; user-select: none; margin-bottom: 5px; }
@@ -84,7 +97,7 @@
     .primary-btn:hover { background-color: #2563eb; }
 
     /* Vorschläge */
-    .suggestions-wrap { width: 760px; max-width: 100%; }
+    .suggestions-wrap { width: calc(var(--num-col-width) + 10px + var(--card-width)); max-width: 100%; }
     .suggestion-form, .suggestion-card {
       background: #fff; border: 1px solid #93c5fd; border-radius: 8px; padding: 16px; box-shadow: var(--card-shadow);
     }
@@ -151,6 +164,7 @@
         <div class="suggestion-form">
           <h2>Vorschlag einreichen (ohne Anmeldung)</h2>
           <input id="sugg-title" class="field" type="text" placeholder="Titel" required>
+          <input id="sugg-author" class="field" type="text" placeholder="Verfasser (optional)">
           <textarea id="sugg-comment" class="field" placeholder="Kommentar (optional)" rows="4"></textarea>
           <button id="sugg-submit" class="primary-btn">Absenden</button>
           <div id="sugg-message" style="margin-top:8px; font-size:.9em;"></div>
@@ -162,10 +176,12 @@
 
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
     const SUPABASE_URL = "https://fdsedmqvonfsegyfvqwq.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZkc2VkbXF2b25mc2VneWZ2cXdxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE0NDA3MTUsImV4cCI6MjA2NzAxNjcxNX0.85AKLlUGAtOsLm8Om6rx19ZpPBYF8kf3xrL6NiTPCME";
     const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
+    // Tabs
     const tabButtons = document.querySelectorAll('.tab-btn');
     const tabListe = document.getElementById('tab-liste');
     const tabVorschlaege = document.getElementById('tab-vorschlaege');
@@ -177,16 +193,19 @@
       tabVorschlaege.style.display = t === 'vorschlaege' ? 'block' : 'none';
       if (t === 'liste') renderTop10();
       else renderSuggestions();
+      // nach Tabwechsel Höhen synchronisieren
+      setTimeout(syncAllNumberHeights, 0);
     }));
 
+    // Session & Login
     async function checkSession() {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) enableEditMode(); else enableViewMode();
       renderTop10();
       renderSuggestions();
       setInterval(() => {
-        if (tabListe.style.display !== 'none') renderTop10();
-        if (tabVorschlaege.style.display !== 'none') renderSuggestions();
+        if (tabListe.style.display !== 'none') { renderTop10(); }
+        if (tabVorschlaege.style.display !== 'none') { renderSuggestions(); }
       }, 120000);
     }
     function enableEditMode() {
@@ -214,6 +233,7 @@
       renderTop10();
     });
 
+    // Daten: Top10
     async function fetchTop10() {
       const { data } = await supabase.from("top10_items").select("*").order("position");
       return data || [];
@@ -242,6 +262,8 @@
 
     async function renderTop10() {
       const list = await fetchTop10();
+
+      // letztes Update
       let latest = null;
       for (const it of list) if (it.last_updated) {
         const d = new Date(it.last_updated); if (!latest || d > latest) latest = d;
@@ -250,53 +272,79 @@
       if (document.getElementById("app-section").style.display === "block") {
         document.getElementById("last-saved").textContent = latest ? `Letzte Änderung: ${latest.toLocaleString("de-DE")}` : "Letzte Änderung: nie";
       }
+
+      // Nummernspalten (fix 1–10)
       const numView = document.getElementById("number-column-view");
       const numEdit = document.getElementById("number-column-edit");
       numView.innerHTML = ""; numEdit.innerHTML = "";
       for (let i = 0; i < 10; i++) {
-        const d = document.createElement("div"); d.className="number-cell"; d.textContent = i+1; numView.appendChild(d);
-        const e = document.createElement("div"); e.className="number-cell"; e.textContent = i+1; numEdit.appendChild(e);
+        const dv = document.createElement("div"); dv.className="number-cell"; dv.textContent = i+1; numView.appendChild(dv);
+        const de = document.createElement("div"); de.className="number-cell"; de.textContent = i+1; numEdit.appendChild(de);
       }
+
+      // Readonly Karten
       const ro = document.getElementById("readonly-column");
       ro.innerHTML = "";
       list.forEach(item => {
         const card = document.createElement("div");
         card.className = "list-item-readonly";
-        card.innerHTML = `<input class="title" value="${item.title || ""}" disabled />
-                          <textarea disabled>${item.comment || ""}</textarea>
-                          <input class="status" value="${item.status || ""}" disabled />`;
+        card.innerHTML = `
+          <input class="title" value="${item.title || ""}" disabled />
+          <textarea disabled>${item.comment || ""}</textarea>
+          <input class="status" value="${item.status || ""}" disabled />
+        `;
         ro.appendChild(card);
       });
+
+      // Editierbare Karten
       const sc = document.getElementById("sortable-column");
       sc.innerHTML = "";
       list.forEach(item => {
         const card = document.createElement("div");
         card.className = "list-item";
         card.dataset.id = item.id;
-        card.innerHTML = `<div class="drag-handle">☰</div>
-                          <input class="title" value="${item.title || ""}" />
-                          <textarea placeholder="Kommentar...">${item.comment || ""}</textarea>
-                          <input class="status" placeholder="Status..." value="${item.status || ""}" />`;
+        card.innerHTML = `
+          <div class="drag-handle">☰</div>
+          <input class="title" value="${item.title || ""}" />
+          <textarea placeholder="Kommentar...">${item.comment || ""}</textarea>
+          <input class="status" placeholder="Status..." value="${item.status || ""}" />
+        `;
         sc.appendChild(card);
       });
-      new Sortable(sc, { animation: 150, handle: '.drag-handle' });
+
+      // Eingaben -> Höhen synchronisieren (Titel/Kommentar/Status ändern Höhe)
+      sc.addEventListener('input', debounce(syncAllNumberHeights, 50));
+      ro.addEventListener('input', debounce(syncAllNumberHeights, 50));
+
+      // Sortable nur im Editbereich
+      new Sortable(sc, {
+        animation: 150,
+        handle: '.drag-handle',
+        onEnd() { syncAllNumberHeights(); }
+      });
+
+      // Erste Synchronisation nach Render
+      rafSync();
     }
 
+    // Daten: Vorschläge (mit Verfasser)
     async function fetchSuggestions() {
       const { data } = await supabase.from("suggestions").select("*").order("created_at", { ascending: false });
       return data || [];
     }
     async function submitSuggestion() {
       const title = document.getElementById("sugg-title").value.trim();
+      const author = document.getElementById("sugg-author").value.trim();
       const comment = document.getElementById("sugg-comment").value.trim();
       const msg = document.getElementById("sugg-message");
       if (!title) { msg.textContent = "Bitte einen Titel eingeben."; msg.style.color = "#b91c1c"; return; }
       msg.textContent = "Sende..."; msg.style.color = "#555";
-      const { error } = await supabase.from("suggestions").insert({ title, comment });
+      const { error } = await supabase.from("suggestions").insert({ title, comment, author });
       if (error) { msg.textContent = "Fehler: " + error.message; msg.style.color = "#b91c1c"; }
       else {
         msg.textContent = "Danke! Vorschlag eingereicht."; msg.style.color = "#166534";
         document.getElementById("sugg-title").value = "";
+        document.getElementById("sugg-author").value = "";
         document.getElementById("sugg-comment").value = "";
         renderSuggestions();
       }
@@ -317,9 +365,14 @@
       list.forEach(s => {
         const card = document.createElement("div");
         card.className = "suggestion-card";
-        card.innerHTML = `<h3>${s.title || ""}</h3>
-                          <div>${(s.comment || "").replace(/\n/g, "<br>")}</div>
-                          <div class="suggestion-meta">Eingereicht am ${new Date(s.created_at).toLocaleString("de-DE")}</div>`;
+        card.innerHTML = `
+          <h3>${s.title || ""}</h3>
+          <div>${(s.comment || "").replace(/\n/g, "<br>")}</div>
+          <div class="suggestion-meta">
+            ${s.author ? `Verfasser: ${s.author} · ` : ""}
+            Eingereicht am ${new Date(s.created_at).toLocaleString("de-DE")}
+          </div>
+        `;
         if (isAuth) {
           const del = document.createElement("button");
           del.className = "delete-btn";
@@ -331,6 +384,37 @@
       });
     }
 
+    // ---------- Höhen-Sync für Nummern <-> Karten (robust) ----------
+    function syncPair(numberColumnId, cardsColumnId) {
+      const numCol = document.getElementById(numberColumnId);
+      const cardsCol = document.getElementById(cardsColumnId);
+      if (!numCol || !cardsCol) return;
+      const nums = Array.from(numCol.children);
+      const cards = Array.from(cardsCol.children);
+      const count = Math.min(nums.length, cards.length);
+      for (let i = 0; i < count; i++) {
+        nums[i].style.height = cards[i].offsetHeight + 'px';
+      }
+    }
+    function syncAllNumberHeights() {
+      syncPair('number-column-view', 'readonly-column');
+      syncPair('number-column-edit', 'sortable-column');
+    }
+    function rafSync() {
+      // zweimal hintereinander, falls Fonts/Layout nachträglich finalisieren
+      requestAnimationFrame(() => {
+        syncAllNumberHeights();
+        requestAnimationFrame(syncAllNumberHeights);
+      });
+    }
+    window.addEventListener('resize', debounce(syncAllNumberHeights, 50));
+
+    // kleines Debounce-Helferlein
+    function debounce(fn, ms) {
+      let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+    }
+
+    // Start
     checkSession();
   </script>
 </body>
