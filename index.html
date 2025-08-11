@@ -3,115 +3,55 @@
 <head>
   <meta charset="UTF-8" />
   <title>Top 10 Aufgaben BZA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
   <style>
-    :root {
-      --blue: #1d4ed8;
-      --blue-dark: #1e3a8a;
-      --blue-border: #1e40af;
-      --card-shadow: 0 4px 8px rgba(0,0,0,0.05);
-      --row-gap: 15px;
-      --num-col-width: 60px;
-      --card-width: 700px;
+    :root{
+      --blue:#1d4ed8;--blue-dark:#1e3a8a;--blue-border:#1e40af;
+      --card-shadow:0 4px 8px rgba(0,0,0,.05);--row-gap:15px;--num-col-width:60px;--card-width:700px
     }
-    * { box-sizing: border-box; }
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #f0f4f8;
-      color: #1e3a8a;
-      margin: 0;
-    }
-    header {
-      display: flex; align-items: center;
-      background-color: var(--blue-dark);
-      padding: 10px 20px;
-    }
-    header img { height: 40px; margin-right: 15px; }
-    header h1 { color: white; font-size: 1.5em; margin: 0; }
-
-    nav.tabs {
-      display: flex; gap: 10px; padding: 12px 20px; background: #e8eef8;
-      align-items: center; justify-content: flex-start;
-    }
-    .tab-btn {
-      background: white; border: 1px solid #93c5fd; color: var(--blue-dark);
-      border-radius: 999px; padding: 8px 14px; cursor: pointer;
-    }
-    .tab-btn.active {
-      background: var(--blue); color: white; border-color: var(--blue);
-    }
-
-    main { padding: 20px; display: flex; flex-direction: column; align-items: center; }
-
+    *{box-sizing:border-box}
+    body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#f0f4f8;color:#1e3a8a;margin:0}
+    header{display:flex;align-items:center;background:var(--blue-dark);padding:10px 20px}
+    header img{height:40px;margin-right:15px}
+    header h1{color:#fff;font-size:1.5em;margin:0}
+    nav.tabs{display:flex;gap:10px;padding:12px 20px;background:#e8eef8;align-items:center}
+    .tab-btn{background:#fff;border:1px solid #93c5fd;color:var(--blue-dark);border-radius:999px;padding:8px 14px;cursor:pointer}
+    .tab-btn.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+    main{padding:20px;display:flex;flex-direction:column;align-items:center}
     /* Login */
-    #auth-section { margin-bottom: 16px; }
-    #login-form {
-      background: #fff; border: 1px solid #93c5fd; border-radius: 8px; padding: 20px; width: 300px;
-      box-shadow: var(--card-shadow);
-    }
-    #logout-btn {
-      background: transparent; border: none; color: var(--blue-dark);
-      cursor: pointer; text-decoration: underline; margin-top: 10px;
-    }
-
-    /* Top-10: fixierte Nummern links, Karten rechts */
-    .list-container { display: flex; }
-    .number-column {
-      width: var(--num-col-width);
-      display: flex; flex-direction: column; gap: var(--row-gap);
-      margin-right: 10px;
-    }
-    .number-cell {
-      width: 100%;
-      display: flex; align-items: center; justify-content: center;
-      font-weight: bold; font-size: 2.2em; color: var(--blue);
-      /* Höhe wird per JS gesetzt */
-    }
-    .readonly-column, .sortable-column {
-      display: flex; flex-direction: column; gap: var(--row-gap);
-    }
-    .list-item, .list-item-readonly {
-      width: var(--card-width);
-      background: #fff; border: 2px solid var(--blue-border); border-radius: 8px;
-      box-shadow: var(--card-shadow); padding: 10px 15px;
-      display: flex; flex-direction: column; justify-content: center; transition: box-shadow .2s;
-    }
-    .list-item:hover, .list-item-readonly:hover { box-shadow: 0 6px 12px rgba(0,0,0,0.1); }
-    .drag-handle { cursor: grab; font-size: 1.4em; user-select: none; margin-bottom: 5px; touch-action: none; }
-    .drag-ghost { opacity: 0.7; }
-
-    input.title, input.title[disabled] {
-      width: 100%; font-size: 1.1em; font-weight: 600; border: none; border-bottom: 2px solid var(--blue);
-      color: var(--blue-dark); outline: none; background: transparent; margin-bottom: 8px;
-    }
-    textarea, input.status, textarea[disabled], input.status[disabled] {
-      width: 100%; margin-top: 6px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; resize: vertical;
-    }
-    textarea { height: 60px; }
-    #last-saved, #last-saved-view { font-size: .9em; color: #555; margin: 10px 0 20px; }
-    .primary-btn {
-      background-color: var(--blue); color: white; border: none; border-radius: 6px;
-      padding: 12px 24px; font-size: 1em; cursor: pointer; transition: background-color .2s;
-    }
-    .primary-btn:hover { background-color: #2563eb; }
-
+    #auth-section{margin-bottom:16px}
+    #login-form{background:#fff;border:1px solid #93c5fd;border-radius:8px;padding:20px;width:300px;box-shadow:var(--card-shadow)}
+    #logout-btn{background:transparent;border:none;color:var(--blue-dark);cursor:pointer;text-decoration:underline;margin-top:10px}
+    .field{width:100%;margin-bottom:8px;padding:8px;border:1px solid #cbd5e1;border-radius:4px}
+    .primary-btn{background:var(--blue);color:#fff;border:none;border-radius:6px;padding:12px 24px;font-size:1em;cursor:pointer;transition:.2s}
+    .primary-btn:hover{background:#2563eb}
+    /* Top-10 Layout */
+    .list-container{display:flex}
+    .number-column{width:var(--num-col-width);display:flex;flex-direction:column;gap:var(--row-gap);margin-right:10px}
+    .number-cell{width:100%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:2.2em;color:var(--blue)}
+    .readonly-column,.sortable-column{display:flex;flex-direction:column;gap:var(--row-gap)}
+    .list-item,.list-item-readonly{width:var(--card-width);background:#fff;border:2px solid var(--blue-border);border-radius:8px;box-shadow:var(--card-shadow);padding:10px 15px;display:flex;flex-direction:column;transition:box-shadow .2s}
+    .list-item:hover,.list-item-readonly:hover{box-shadow:0 6px 12px rgba(0,0,0,.1)}
+    .drag-handle{cursor:grab;font-size:1.4em;user-select:none;touch-action:none;margin-bottom:5px}
+    .drag-ghost{opacity:.7}
+    .list-item,.list-item *{-webkit-user-drag:none}
+    input.title,input.title[disabled]{width:100%;font-size:1.1em;font-weight:600;border:none;border-bottom:2px solid var(--blue);color:var(--blue-dark);outline:none;background:transparent;margin-bottom:8px}
+    textarea,input.status,textarea[disabled],input.status[disabled]{width:100%;margin-top:6px;padding:8px;border:1px solid #cbd5e1;border-radius:4px;resize:vertical}
+    textarea{height:60px}
+    #last-saved,#last-saved-view{font-size:.9em;color:#555;margin:10px 0 20px}
     /* Vorschläge */
-    .suggestions-wrap { width: calc(var(--num-col-width) + 10px + var(--card-width)); max-width: 100%; }
-    .suggestion-form, .suggestion-card {
-      background: #fff; border: 1px solid #93c5fd; border-radius: 8px; padding: 16px; box-shadow: var(--card-shadow);
-    }
-    .suggestion-form { margin-bottom: 16px; }
-    .suggestion-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
-    .suggestion-card h3 { margin: 0 0 8px; color: var(--blue-dark); }
-    .suggestion-meta { font-size: .85em; color: #666; margin-top: 6px; }
-    .delete-btn {
-      background: transparent; border: 1px solid #ef4444; color: #ef4444; border-radius: 6px;
-      padding: 6px 10px; cursor: pointer; margin-top: 8px;
-    }
-    .delete-btn:hover { background: #fee2e2; }
-    .field { width: 100%; margin-bottom: 8px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; }
+    .suggestions-wrap{width:calc(var(--num-col-width) + 10px + var(--card-width));max-width:100%}
+    .suggestion-form,.suggestion-card{background:#fff;border:1px solid #93c5fd;border-radius:8px;padding:16px;box-shadow:var(--card-shadow)}
+    .suggestion-form{margin-bottom:16px}
+    .suggestion-grid{display:grid;grid-template-columns:1fr;gap:12px}
+    .suggestion-card h3{margin:0 0 8px;color:var(--blue-dark)}
+    .suggestion-meta{font-size:.85em;color:#666;margin-top:6px}
+    .delete-btn{background:transparent;border:1px solid #ef4444;color:#ef4444;border-radius:6px;padding:6px 10px;cursor:pointer;margin-top:8px}
+    .delete-btn:hover{background:#fee2e2}
+    @media (max-width:840px){:root{--card-width:100%}.suggestions-wrap{width:100%}}
   </style>
 </head>
 <body>
@@ -136,9 +76,9 @@
       </form>
     </div>
 
-    <!-- Liste -->
+    <!-- TAB: LISTE -->
     <section id="tab-liste">
-      <!-- View -->
+      <!-- Read-only (ohne Login) -->
       <div id="view-section">
         <div id="last-saved-view">Letzte Änderung: nie</div>
         <div class="list-container">
@@ -146,8 +86,7 @@
           <div class="readonly-column" id="readonly-column"></div>
         </div>
       </div>
-
-      <!-- Edit -->
+      <!-- Edit (nur mit Login) -->
       <div id="app-section" style="display:none;">
         <div id="last-saved">Letzte Änderung: nie</div>
         <div class="list-container">
@@ -159,7 +98,7 @@
       </div>
     </section>
 
-    <!-- Vorschläge -->
+    <!-- TAB: VORSCHLÄGE -->
     <section id="tab-vorschlaege" style="display:none;">
       <div class="suggestions-wrap">
         <div class="suggestion-form">
@@ -168,7 +107,7 @@
           <input id="sugg-author" class="field" type="text" placeholder="Verfasser (optional)">
           <textarea id="sugg-comment" class="field" placeholder="Kommentar (optional)" rows="4"></textarea>
           <button id="sugg-submit" class="primary-btn">Absenden</button>
-          <div id="sugg-message" style="margin-top:8px; font-size:.9em;"></div>
+          <div id="sugg-message" style="margin-top:8px;font-size:.9em;"></div>
         </div>
         <div class="suggestion-grid" id="suggestion-list"></div>
       </div>
@@ -178,9 +117,13 @@
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
+    // --- Supabase Konfiguration (von dir bereitgestellt) ---
     const SUPABASE_URL = "https://fdsedmqvonfsegyfvqwq.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZkc2VkbXF2b25mc2VneWZ2cXdxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE0NDA3MTUsImV4cCI6MjA2NzAxNjcxNX0.85AKLlUGAtOsLm8Om6rx19ZpPBYF8kf3xrL6NiTPCME";
     const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // Verhindert Textauswahl beim Start auf dem Handle (Desktop)
+    document.addEventListener('mousedown', (e) => { if (e.target.closest('.drag-handle')) e.preventDefault(); });
 
     // Tabs
     const tabButtons = document.querySelectorAll('.tab-btn');
@@ -197,8 +140,8 @@
     }));
 
     // Session & Login
-    async function checkSession() {
-      const { data: { session } } = await supabase.auth.getSession();
+    async function checkSession(){
+      const { data:{ session } } = await supabase.auth.getSession();
       if (session) enableEditMode(); else enableViewMode();
       renderTop10();
       renderSuggestions();
@@ -207,216 +150,209 @@
         if (tabVorschlaege.style.display !== 'none') renderSuggestions();
       }, 120000);
     }
-    function enableEditMode() {
+    function enableEditMode(){
       document.getElementById("auth-section").style.display = "none";
       document.getElementById("app-section").style.display = "block";
       document.getElementById("view-section").style.display = "none";
     }
-    function enableViewMode() {
+    function enableViewMode(){
       document.getElementById("auth-section").style.display = "block";
       document.getElementById("app-section").style.display = "none";
       document.getElementById("view-section").style.display = "block";
     }
-    document.getElementById("login-form").addEventListener("submit", async (e) => {
+    document.getElementById("login-form").addEventListener("submit", async (e)=>{
       e.preventDefault();
-      const { error } = await supabase.auth.signInWithPassword({
-        email: document.getElementById("email").value,
-        password: document.getElementById("password").value
-      });
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) alert("Login fehlgeschlagen: " + error.message);
       else { enableEditMode(); renderTop10(); }
     });
-    document.getElementById("logout-btn").addEventListener("click", async () => {
+    document.getElementById("logout-btn").addEventListener("click", async ()=>{
       await supabase.auth.signOut();
       enableViewMode();
       renderTop10();
     });
 
-    // Daten: Top10
-    async function fetchTop10() {
-      const { data } = await supabase.from("top10_items").select("*").order("position");
+    // --- Top10 Daten ---
+    async function fetchTop10(){
+      const { data, error } = await supabase.from("top10_items").select("*").order("position");
+      if (error) { console.error(error.message); return []; }
       return data || [];
     }
-    function updateLastSaved(iso, editable) {
+    function updateLastSaved(iso, editable){
       const txt = `Letzte Änderung: ${new Date(iso).toLocaleString("de-DE")}`;
       (editable ? document.getElementById("last-saved") : document.getElementById("last-saved-view")).textContent = txt;
     }
-    async function saveTop10() {
+    async function saveTop10(){
       const now = new Date().toISOString();
       const listItems = document.querySelectorAll("#sortable-column .list-item");
-      for (let i = 0; i < listItems.length; i++) {
+      for (let i=0;i<listItems.length;i++){
         const card = listItems[i];
-        await supabase.from("top10_items").update({
-          position: i + 1,
-          title: card.querySelector("input.title").value.trim(),
-          comment: card.querySelector("textarea").value.trim(),
-          status: card.querySelector("input.status").value.trim(),
-          last_updated: now
-        }).eq("id", parseInt(card.dataset.id, 10));
+        const id = parseInt(card.dataset.id,10);
+        const title = card.querySelector("input.title").value.trim();
+        const comment = card.querySelector("textarea").value.trim();
+        const status = card.querySelector("input.status").value.trim();
+        const { error } = await supabase.from("top10_items").update({
+          position:i+1,title,comment,status,last_updated:now
+        }).eq("id", id);
+        if (error) console.error(error.message);
       }
-      updateLastSaved(now, true);
+      updateLastSaved(now,true);
       alert("Liste gespeichert!");
     }
     document.getElementById("save-btn").addEventListener("click", saveTop10);
 
-    async function renderTop10() {
+    async function renderTop10(){
       const list = await fetchTop10();
 
       // letztes Update
-      let latest = null;
-      for (const it of list) if (it.last_updated) {
-        const d = new Date(it.last_updated); if (!latest || d > latest) latest = d;
-      }
+      let latest=null;
+      for (const it of list){ if (it.last_updated){ const d=new Date(it.last_updated); if(!latest||d>latest) latest=d; } }
       document.getElementById("last-saved-view").textContent = latest ? `Letzte Änderung: ${latest.toLocaleString("de-DE")}` : "Letzte Änderung: nie";
-      if (document.getElementById("app-section").style.display === "block") {
+      if (document.getElementById("app-section").style.display === "block"){
         document.getElementById("last-saved").textContent = latest ? `Letzte Änderung: ${latest.toLocaleString("de-DE")}` : "Letzte Änderung: nie";
       }
 
       // Nummernspalten (fix 1–10)
       const numView = document.getElementById("number-column-view");
       const numEdit = document.getElementById("number-column-edit");
-      numView.innerHTML = ""; numEdit.innerHTML = "";
-      for (let i = 0; i < 10; i++) {
-        const dv = document.createElement("div"); dv.className="number-cell"; dv.textContent = i+1; numView.appendChild(dv);
-        const de = document.createElement("div"); de.className="number-cell"; de.textContent = i+1; numEdit.appendChild(de);
+      numView.innerHTML=""; numEdit.innerHTML="";
+      for (let i=0;i<10;i++){
+        const a=document.createElement("div"); a.className="number-cell"; a.textContent=i+1; numView.appendChild(a);
+        const b=document.createElement("div"); b.className="number-cell"; b.textContent=i+1; numEdit.appendChild(b);
       }
 
-      // Readonly Karten
+      // Read-only Karten
       const ro = document.getElementById("readonly-column");
-      ro.innerHTML = "";
-      list.forEach(item => {
-        const card = document.createElement("div");
-        card.className = "list-item-readonly";
+      ro.innerHTML="";
+      list.forEach(item=>{
+        const card=document.createElement("div");
+        card.className="list-item-readonly";
         card.innerHTML = `
-          <input class="title" value="${item.title || ""}" disabled />
-          <textarea disabled>${item.comment || ""}</textarea>
-          <input class="status" value="${item.status || ""}" disabled />
+          <input class="title" type="text" value="${item.title||""}" disabled />
+          <textarea disabled>${item.comment||""}</textarea>
+          <input class="status" type="text" value="${item.status||""}" disabled />
         `;
         ro.appendChild(card);
       });
 
       // Editierbare Karten
       const sc = document.getElementById("sortable-column");
-      sc.innerHTML = "";
-      list.forEach(item => {
-        const card = document.createElement("div");
-        card.className = "list-item";
-        card.dataset.id = item.id;
+      sc.innerHTML="";
+      list.forEach(item=>{
+        const card=document.createElement("div");
+        card.className="list-item";
+        card.dataset.id=item.id;
         card.innerHTML = `
           <div class="drag-handle">☰</div>
-          <input class="title" value="${item.title || ""}" />
-          <textarea placeholder="Kommentar...">${item.comment || ""}</textarea>
-          <input class="status" placeholder="Status..." value="${item.status || ""}" />
+          <input class="title" type="text" value="${item.title||""}" />
+          <textarea placeholder="Kommentar...">${item.comment||""}</textarea>
+          <input class="status" type="text" placeholder="Status..." value="${item.status||""}" />
         `;
         sc.appendChild(card);
       });
 
-      // Eingaben -> Höhen synchronisieren
-      sc.addEventListener('input', debounce(syncAllNumberHeights, 50));
-      ro.addEventListener('input', debounce(syncAllNumberHeights, 50));
+      // Eingaben -> Höhe synchronisieren
+      sc.addEventListener('input', debounce(syncAllNumberHeights,50));
+      ro.addEventListener('input', debounce(syncAllNumberHeights,50));
 
-      // --- Sortable: alte Instanz zerstören, neu initialisieren ---
-      if (window.__sortableInstance) {
-        window.__sortableInstance.destroy();
-        window.__sortableInstance = null;
-      }
-      window.__sortableInstance = new Sortable(sc, {
-        animation: 150,
-        handle: '.drag-handle',
-        draggable: '.list-item',
-        ghostClass: 'drag-ghost',
-        onEnd() { syncAllNumberHeights(); }
+      // Sortable robust initialisieren (PC + iPad)
+      if (window.__sortableInstance){ window.__sortableInstance.destroy(); window.__sortableInstance=null; }
+      window.__sortableInstance = new Sortable(sc,{
+        animation:150,
+        handle:'.drag-handle',
+        draggable:'.list-item',
+        forceFallback:true,
+        fallbackOnBody:true,
+        fallbackTolerance:3,
+        cancel:'input, textarea, select, option, .title, .status',
+        ghostClass:'drag-ghost',
+        onStart(){ document.body.style.userSelect='none'; },
+        onEnd(){ document.body.style.userSelect=''; syncAllNumberHeights(); }
       });
 
-      // Erste Synchronisation nach Render
+      // erste Synchronisation
       rafSync();
     }
 
-    // Daten: Vorschläge (mit Verfasser)
-    async function fetchSuggestions() {
-      const { data } = await supabase.from("suggestions").select("*").order("created_at", { ascending: false });
+    // --- Vorschläge (mit Verfasser) ---
+    async function fetchSuggestions(){
+      const { data, error } = await supabase.from("suggestions").select("*").order("created_at",{ascending:false});
+      if (error){ console.error(error.message); return []; }
       return data || [];
     }
-    async function submitSuggestion() {
+    async function submitSuggestion(){
       const title = document.getElementById("sugg-title").value.trim();
       const author = document.getElementById("sugg-author").value.trim();
       const comment = document.getElementById("sugg-comment").value.trim();
       const msg = document.getElementById("sugg-message");
-      if (!title) { msg.textContent = "Bitte einen Titel eingeben."; msg.style.color = "#b91c1c"; return; }
-      msg.textContent = "Sende..."; msg.style.color = "#555";
+      if (!title){ msg.textContent="Bitte einen Titel eingeben."; msg.style.color="#b91c1c"; return; }
+      msg.textContent="Sende..."; msg.style.color="#555";
       const { error } = await supabase.from("suggestions").insert({ title, comment, author });
-      if (error) { msg.textContent = "Fehler: " + error.message; msg.style.color = "#b91c1c"; }
-      else {
-        msg.textContent = "Danke! Vorschlag eingereicht."; msg.style.color = "#166534";
-        document.getElementById("sugg-title").value = "";
-        document.getElementById("sugg-author").value = "";
-        document.getElementById("sugg-comment").value = "";
+      if (error){ msg.textContent="Fehler: "+error.message; msg.style.color="#b91c1c"; }
+      else{
+        msg.textContent="Danke! Vorschlag eingereicht."; msg.style.color="#166534";
+        document.getElementById("sugg-title").value="";
+        document.getElementById("sugg-author").value="";
+        document.getElementById("sugg-comment").value="";
         renderSuggestions();
       }
     }
     document.getElementById("sugg-submit").addEventListener("click", submitSuggestion);
 
-    async function deleteSuggestion(id) {
+    async function deleteSuggestion(id){
       if (!confirm("Vorschlag löschen?")) return;
-      await supabase.from("suggestions").delete().eq("id", id);
-      renderSuggestions();
+      const { error } = await supabase.from("suggestions").delete().eq("id", id);
+      if (error){ alert("Löschen nicht erlaubt oder Fehler: "+error.message); }
+      else renderSuggestions();
     }
-    async function renderSuggestions() {
+    async function renderSuggestions(){
       const list = await fetchSuggestions();
       const grid = document.getElementById("suggestion-list");
-      grid.innerHTML = "";
-      const { data: { session } } = await supabase.auth.getSession();
+      grid.innerHTML="";
+      const { data:{ session } } = await supabase.auth.getSession();
       const isAuth = !!session;
-      list.forEach(s => {
-        const card = document.createElement("div");
-        card.className = "suggestion-card";
+      list.forEach(s=>{
+        const card=document.createElement("div");
+        card.className="suggestion-card";
         card.innerHTML = `
-          <h3>${s.title || ""}</h3>
-          <div>${(s.comment || "").replace(/\n/g, "<br>")}</div>
+          <h3>${s.title||""}</h3>
+          <div>${(s.comment||"").replace(/\n/g,"<br>")}</div>
           <div class="suggestion-meta">
-            ${s.author ? `Verfasser: ${s.author} · ` : ""}
-            Eingereicht am ${new Date(s.created_at).toLocaleString("de-DE")}
+            ${s.author ? `Verfasser: ${s.author} · ` : ""}Eingereicht am ${new Date(s.created_at).toLocaleString("de-DE")}
           </div>
         `;
-        if (isAuth) {
-          const del = document.createElement("button");
-          del.className = "delete-btn";
-          del.textContent = "Löschen (nur Login)";
-          del.addEventListener("click", () => deleteSuggestion(s.id));
+        if (isAuth){
+          const del=document.createElement("button");
+          del.className="delete-btn";
+          del.textContent="Löschen (nur Login)";
+          del.addEventListener("click",()=>deleteSuggestion(s.id));
           card.appendChild(del);
         }
         grid.appendChild(card);
       });
     }
 
-    // ---------- Höhen-Sync für Nummern <-> Karten ----------
-    function syncPair(numberColumnId, cardsColumnId) {
-      const numCol = document.getElementById(numberColumnId);
-      const cardsCol = document.getElementById(cardsColumnId);
+    // --- Nummern ↔ Karten Höhensync ---
+    function syncPair(numId, colId){
+      const numCol=document.getElementById(numId);
+      const cardsCol=document.getElementById(colId);
       if (!numCol || !cardsCol) return;
-      const nums = Array.from(numCol.children);
-      const cards = Array.from(cardsCol.children);
-      const count = Math.min(nums.length, cards.length);
-      for (let i = 0; i < count; i++) {
-        nums[i].style.height = cards[i].offsetHeight + 'px';
-      }
+      const nums=[...numCol.children];
+      const cards=[...cardsCol.children];
+      const n=Math.min(nums.length,cards.length);
+      for (let i=0;i<n;i++){ nums[i].style.height = cards[i].offsetHeight+'px'; }
     }
-    function syncAllNumberHeights() {
-      syncPair('number-column-view', 'readonly-column');
-      syncPair('number-column-edit', 'sortable-column');
+    function syncAllNumberHeights(){
+      syncPair('number-column-view','readonly-column');
+      syncPair('number-column-edit','sortable-column');
     }
-    function rafSync() {
-      requestAnimationFrame(() => {
-        syncAllNumberHeights();
-        requestAnimationFrame(syncAllNumberHeights);
-      });
+    function rafSync(){
+      requestAnimationFrame(()=>{ syncAllNumberHeights(); requestAnimationFrame(syncAllNumberHeights); });
     }
-    window.addEventListener('resize', debounce(syncAllNumberHeights, 50));
-
-    // kleines Debounce
-    function debounce(fn, ms) {
-      let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
-    }
+    window.addEventListener('resize', debounce(syncAllNumberHeights,50));
+    function debounce(fn,ms){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a),ms); }; }
 
     // Start
     checkSession();
