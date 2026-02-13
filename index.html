@@ -117,7 +117,7 @@
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-    // --- Supabase Konfiguration (NEU: anon key eingesetzt) ---
+    // --- Supabase Konfiguration (Projekt + anon key) ---
     const SUPABASE_URL = "https://qnvrrkvyczmcdiyagwow.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFudnJya3Z5Y3ptY2RpeWFnd293Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5ODAwMzQsImV4cCI6MjA4NjU1NjAzNH0.PiwvsgVQX3Ali6UUvK_9KQI6qz51EwHLAorSvtc8k_A";
     const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -184,22 +184,43 @@
       const txt = `Letzte Änderung: ${new Date(iso).toLocaleString("de-DE")}`;
       (editable ? document.getElementById("last-saved") : document.getElementById("last-saved-view")).textContent = txt;
     }
+
+    // ✅ SAVE (NEU): robust via UPSERT nach position + Fehler als Alert
     async function saveTop10(){
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session){
+        alert("Du bist nicht eingeloggt – Speichern ist nur mit Login möglich.");
+        return;
+      }
+
       const now = new Date().toISOString();
       const listItems = document.querySelectorAll("#sortable-column .list-item");
+
+      const rows = [];
       for (let i=0;i<listItems.length;i++){
         const card = listItems[i];
-        const id = parseInt(card.dataset.id,10);
-        const title = card.querySelector("input.title").value.trim();
-        const comment = card.querySelector("textarea").value.trim();
-        const status = card.querySelector("input.status").value.trim();
-        const { error } = await supabase.from("top10_items").update({
-          position:i+1,title,comment,status,last_updated:now
-        }).eq("id", id);
-        if (error) console.error(error.message);
+        rows.push({
+          position: i + 1,
+          title: card.querySelector("input.title").value.trim(),
+          comment: card.querySelector("textarea").value.trim(),
+          status: card.querySelector("input.status").value.trim(),
+          last_updated: now
+        });
       }
+
+      const { error } = await supabase
+        .from("top10_items")
+        .upsert(rows, { onConflict: "position" });
+
+      if (error){
+        console.error("Save error:", error);
+        alert("Speichern fehlgeschlagen: " + error.message);
+        return;
+      }
+
       updateLastSaved(now,true);
       alert("Liste gespeichert!");
+      renderTop10();
     }
     document.getElementById("save-btn").addEventListener("click", saveTop10);
 
@@ -240,6 +261,8 @@
       // Editierbare Karten
       const sc = document.getElementById("sortable-column");
       sc.innerHTML="";
+
+      // Falls noch keine 10 Zeilen existieren: UI bleibt trotzdem stabil (zeigt was da ist)
       list.forEach(item=>{
         const card=document.createElement("div");
         card.className="list-item";
@@ -268,7 +291,7 @@
         fallbackOnBody:true,
         fallbackTolerance:3,
 
-        // WICHTIG: Inputs/Textareas vom Drag ausschließen
+        // Inputs/Textareas vom Drag ausschließen (damit Bearbeiten klappt)
         filter: 'input, textarea, select, option, button',
         preventOnFilter: false,
 
