@@ -263,10 +263,15 @@
         animation:150,
         handle:'.drag-handle',
         draggable:'.list-item',
+
         forceFallback:true,
         fallbackOnBody:true,
         fallbackTolerance:3,
-        cancel:'input, textarea, select, option, .title, .status',
+
+        // WICHTIG: Inputs/Textareas vom Drag ausschließen
+        filter: 'input, textarea, select, option, button',
+        preventOnFilter: false,
+
         ghostClass:'drag-ghost',
         onStart(){ document.body.style.userSelect='none'; },
         onEnd(){ document.body.style.userSelect=''; syncAllNumberHeights(); }
