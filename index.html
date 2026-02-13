@@ -117,9 +117,9 @@
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-    // --- Supabase Konfiguration (NEU) ---
+    // --- Supabase Konfiguration (NEU: anon key eingesetzt) ---
     const SUPABASE_URL = "https://qnvrrkvyczmcdiyagwow.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_NZ8y8dR56UzMDTpXgxlz8A_FPXGbHTu";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFudnJya3Z5Y3ptY2RpeWFnd293Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5ODAwMzQsImV4cCI6MjA4NjU1NjAzNH0.PiwvsgVQX3Ali6UUvK_9KQI6qz51EwHLAorSvtc8k_A";
     const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
     // Verhindert Textauswahl beim Start auf dem Handle (Desktop)
