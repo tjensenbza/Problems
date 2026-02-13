@@ -185,11 +185,9 @@
       (editable ? document.getElementById("last-saved") : document.getElementById("last-saved-view")).textContent = txt;
     }
 
-    // ✅ SAVE (DEBUG): Upsert + Result + direktes Nachlesen + Alerts bei Fehler
+    // ✅ SAVE: Upsert nach position (robust)
     async function saveTop10(){
-      const { data: { session }, error: sessErr } = await supabase.auth.getSession();
-      console.log("SESSION:", session, sessErr);
-
+      const { data: { session } } = await supabase.auth.getSession();
       if (!session){
         alert("Du bist nicht eingeloggt – Speichern ist nur mit Login möglich.");
         return;
@@ -210,46 +208,38 @@
         });
       }
 
-      console.log("UPSERT PAYLOAD:", rows);
-
-      const { data: upsertData, error: upsertError } = await supabase
+      const { error } = await supabase
         .from("top10_items")
-        .upsert(rows, { onConflict: "position" })
-        .select("*");
+        .upsert(rows, { onConflict: "position" });
 
-      console.log("UPSERT RESULT:", upsertData);
-      console.log("UPSERT ERROR:", upsertError);
-
-      if (upsertError){
-        alert("Speichern fehlgeschlagen: " + upsertError.message);
-        return;
-      }
-
-      const { data: checkData, error: checkErr } = await supabase
-        .from("top10_items")
-        .select("*")
-        .order("position");
-
-      console.log("READ AFTER SAVE:", checkData);
-      console.log("READ AFTER SAVE ERROR:", checkErr);
-
-      if (checkErr){
-        alert("Nach-Lesen fehlgeschlagen: " + checkErr.message);
+      if (error){
+        console.error("Save error:", error);
+        alert("Speichern fehlgeschlagen: " + error.message);
         return;
       }
 
       updateLastSaved(now,true);
-      alert("Liste gespeichert (und DB-Check gemacht).");
+      alert("Liste gespeichert!");
       renderTop10();
     }
     document.getElementById("save-btn").addEventListener("click", saveTop10);
 
+    // ✅ RENDER: IMMER 10 Karten erzeugen (auch wenn DB leer ist)
     async function renderTop10(){
       const list = await fetchTop10();
 
+      // Map nach position, damit wir fehlende Einträge auffüllen können
+      const byPos = new Map();
+      for (const it of list) byPos.set(it.position, it);
+
       // letztes Update
       let latest=null;
-      for (const it of list){ if (it.last_updated){ const d=new Date(it.last_updated); if(!latest||d>latest) latest=d; } }
+      for (const it of list){
+        if (it.last_updated){
+          const d=new Date(it.last_updated);
+          if(!latest||d>latest) latest=d;
+        }
+      }
       document.getElementById("last-saved-view").textContent = latest ? `Letzte Änderung: ${latest.toLocaleString("de-DE")}` : "Letzte Änderung: nie";
       if (document.getElementById("app-section").style.display === "block"){
         document.getElementById("last-saved").textContent = latest ? `Letzte Änderung: ${latest.toLocaleString("de-DE")}` : "Letzte Änderung: nie";
@@ -264,10 +254,11 @@
         const b=document.createElement("div"); b.className="number-cell"; b.textContent=i+1; numEdit.appendChild(b);
       }
 
-      // Read-only Karten
+      // Read-only Karten: IMMER 10 (Position 1..10)
       const ro = document.getElementById("readonly-column");
       ro.innerHTML="";
-      list.forEach(item=>{
+      for (let p=1; p<=10; p++){
+        const item = byPos.get(p) || { title:"", comment:"", status:"" };
         const card=document.createElement("div");
         card.className="list-item-readonly";
         card.innerHTML = `
@@ -276,15 +267,16 @@
           <input class="status" type="text" value="${item.status||""}" disabled />
         `;
         ro.appendChild(card);
-      });
+      }
 
-      // Editierbare Karten
+      // Editierbare Karten: IMMER 10 (Position 1..10)
       const sc = document.getElementById("sortable-column");
       sc.innerHTML="";
-      list.forEach(item=>{
+      for (let p=1; p<=10; p++){
+        const item = byPos.get(p) || { title:"", comment:"", status:"" };
         const card=document.createElement("div");
         card.className="list-item";
-        card.dataset.id=item.id;
+        card.dataset.position = String(p);
         card.innerHTML = `
           <div class="drag-handle">☰</div>
           <input class="title" type="text" value="${item.title||""}" />
@@ -292,7 +284,7 @@
           <input class="status" type="text" placeholder="Status..." value="${item.status||""}" />
         `;
         sc.appendChild(card);
-      });
+      }
 
       // Eingaben -> Höhe synchronisieren
       sc.addEventListener('input', debounce(syncAllNumberHeights,50));
@@ -309,7 +301,6 @@
         fallbackOnBody:true,
         fallbackTolerance:3,
 
-        // Inputs/Textareas vom Drag ausschließen
         filter: 'input, textarea, select, option, button',
         preventOnFilter: false,
 
@@ -318,7 +309,6 @@
         onEnd(){ document.body.style.userSelect=''; syncAllNumberHeights(); }
       });
 
-      // erste Synchronisation
       rafSync();
     }
 
