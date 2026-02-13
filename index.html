@@ -185,9 +185,11 @@
       (editable ? document.getElementById("last-saved") : document.getElementById("last-saved-view")).textContent = txt;
     }
 
-    // ✅ SAVE (NEU): robust via UPSERT nach position + Fehler als Alert
+    // ✅ SAVE (DEBUG): Upsert + Result + direktes Nachlesen + Alerts bei Fehler
     async function saveTop10(){
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session }, error: sessErr } = await supabase.auth.getSession();
+      console.log("SESSION:", session, sessErr);
+
       if (!session){
         alert("Du bist nicht eingeloggt – Speichern ist nur mit Login möglich.");
         return;
@@ -208,18 +210,36 @@
         });
       }
 
-      const { error } = await supabase
-        .from("top10_items")
-        .upsert(rows, { onConflict: "position" });
+      console.log("UPSERT PAYLOAD:", rows);
 
-      if (error){
-        console.error("Save error:", error);
-        alert("Speichern fehlgeschlagen: " + error.message);
+      const { data: upsertData, error: upsertError } = await supabase
+        .from("top10_items")
+        .upsert(rows, { onConflict: "position" })
+        .select("*");
+
+      console.log("UPSERT RESULT:", upsertData);
+      console.log("UPSERT ERROR:", upsertError);
+
+      if (upsertError){
+        alert("Speichern fehlgeschlagen: " + upsertError.message);
+        return;
+      }
+
+      const { data: checkData, error: checkErr } = await supabase
+        .from("top10_items")
+        .select("*")
+        .order("position");
+
+      console.log("READ AFTER SAVE:", checkData);
+      console.log("READ AFTER SAVE ERROR:", checkErr);
+
+      if (checkErr){
+        alert("Nach-Lesen fehlgeschlagen: " + checkErr.message);
         return;
       }
 
       updateLastSaved(now,true);
-      alert("Liste gespeichert!");
+      alert("Liste gespeichert (und DB-Check gemacht).");
       renderTop10();
     }
     document.getElementById("save-btn").addEventListener("click", saveTop10);
@@ -261,8 +281,6 @@
       // Editierbare Karten
       const sc = document.getElementById("sortable-column");
       sc.innerHTML="";
-
-      // Falls noch keine 10 Zeilen existieren: UI bleibt trotzdem stabil (zeigt was da ist)
       list.forEach(item=>{
         const card=document.createElement("div");
         card.className="list-item";
@@ -291,7 +309,7 @@
         fallbackOnBody:true,
         fallbackTolerance:3,
 
-        // Inputs/Textareas vom Drag ausschließen (damit Bearbeiten klappt)
+        // Inputs/Textareas vom Drag ausschließen
         filter: 'input, textarea, select, option, button',
         preventOnFilter: false,
 
